@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <ctype.h>
 
-// Function to initialize the board
 void initialize_board(char board[3][3]) {
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
@@ -10,7 +11,6 @@ void initialize_board(char board[3][3]) {
     }
 }
 
-// Function to display the board
 void display_board(char board[3][3]) {
     printf("\n");
     printf(" %c | %c | %c \n", board[0][0], board[0][1], board[0][2]);
@@ -21,7 +21,6 @@ void display_board(char board[3][3]) {
     printf("\n");
 }
 
-// Function to take player input
 void player_move(char board[3][3], char player_marker) {
     int row, col;
     while (1) {
@@ -30,7 +29,7 @@ void player_move(char board[3][3], char player_marker) {
 
         if (result != 2) {
             printf("Invalid input. Please enter numeric values.\n");
-            while (getchar() != '\n'); // clear invalid input
+            while (getchar() != '\n');
             continue;
         }
 
@@ -46,7 +45,20 @@ void player_move(char board[3][3], char player_marker) {
     }
 }
 
-// Function to check for a win
+void ai_move(char board[3][3], char player_marker) {
+    int row, col;
+    srand(time(NULL));
+    while (1) {
+        row = rand() % 3;
+        col = rand() % 3;
+        if (board[row][col] == ' ') {
+            board[row][col] = player_marker;
+            printf("AI (Player %c) chose row %d and column %d.\n", player_marker, row + 1, col + 1);
+            break;
+        }
+    }
+}
+
 int check_win(char board[3][3], char player_marker) {
     for (int i = 0; i < 3; ++i) {
         if (board[i][0] == player_marker && board[i][1] == player_marker && board[i][2] == player_marker) {
@@ -71,8 +83,12 @@ int main() {
     char play_again;
     int player_x_wins = 0;
     int player_o_wins = 0;
-
+    int play_with_ai;
+    
     do {
+        printf("Do you want to play against AI? (1 for Yes, 0 for No): ");
+        scanf("%d", &play_with_ai);
+
         char board[3][3];
         initialize_board(board);
         display_board(board);
@@ -82,7 +98,11 @@ int main() {
         int win = 0;
 
         while (moves < 9 && !win) {
-            player_move(board, current_player);
+            if (play_with_ai && current_player == 'O') {
+                ai_move(board, current_player);
+            } else {
+                player_move(board, current_player);
+            }
             display_board(board);
             win = check_win(board, current_player);
 
