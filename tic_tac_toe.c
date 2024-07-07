@@ -15,7 +15,7 @@ void display_board(char board[3][3]) {
     printf("\n");
     printf(" %c | %c | %c \n", board[0][0], board[0][1], board[0][2]);
     printf("---|---|---\n");
-    printf(" %c | %c | %c \n", board[1][0], board[1][1]);
+    printf(" %c | %c | %c \n", board[1][0], board[1][1], board[1][2]);
     printf("---|---|---\n");
     printf(" %c | %c | %c \n", board[2][0], board[2][1], board[2][2]);
     printf("\n");
@@ -133,34 +133,39 @@ int check_two_in_a_row(char board[3][3], char player_marker, int *row, int *col)
     return 0;
 }
 
-void ai_move(char board[3][3], char ai_marker, char player_marker) {
+void ai_move_easy(char board[3][3], char player_marker) {
     int row, col;
     srand(time(NULL));
-    
-    // Check for a winning move
+    while (1) {
+        row = rand() % 3;
+        col = rand() % 3;
+        if (board[row][col] == ' ') {
+            board[row][col] = player_marker;
+            printf("AI (Player %c) chose row %d and column %d.\n", player_marker, row + 1, col + 1);
+            break;
+        }
+    }
+}
+
+void ai_move_hard(char board[3][3], char ai_marker, char player_marker) {
+    int row, col;
     if (check_two_in_a_row(board, ai_marker, &row, &col)) {
         board[row][col] = ai_marker;
         printf("AI (Player %c) wins by moving to row %d and column %d.\n", ai_marker, row + 1, col + 1);
         return;
     }
-    
-    // Check to block opponent's winning move
     if (check_two_in_a_row(board, player_marker, &row, &col)) {
         board[row][col] = ai_marker;
         printf("AI (Player %c) blocks by moving to row %d and column %d.\n", ai_marker, row + 1, col + 1);
         return;
     }
-    
-    // If no immediate win or block, choose a random move
-    while (1) {
-        row = rand() % 3;
-        col = rand() % 3;
-        if (board[row][col] == ' ') {
-            board[row][col] = ai_marker;
-            printf("AI (Player %c) chose row %d and column %d.\n", ai_marker, row + 1, col + 1);
-            break;
-        }
-    }
+    ai_move_easy(board, ai_marker);
+}
+
+void reset_score(int *player_x_wins, int *player_o_wins) {
+    *player_x_wins = 0;
+    *player_o_wins = 0;
+    printf("Scores have been reset.\n");
 }
 
 int main() {
@@ -168,10 +173,17 @@ int main() {
     int player_x_wins = 0;
     int player_o_wins = 0;
     int play_with_ai;
+    int difficulty_level;
+    char reset_scores;
 
     do {
         printf("Do you want to play against AI? (1 for Yes, 0 for No): ");
         scanf("%d", &play_with_ai);
+
+        if (play_with_ai) {
+            printf("Select difficulty level (1 for Easy, 2 for Hard): ");
+            scanf("%d", &difficulty_level);
+        }
 
         char board[3][3];
         initialize_board(board);
@@ -183,7 +195,11 @@ int main() {
 
         while (moves < 9 && !win) {
             if (play_with_ai && current_player == 'O') {
-                ai_move(board, current_player, 'X');
+                if (difficulty_level == 1) {
+                    ai_move_easy(board, current_player);
+                } else {
+                    ai_move_hard(board, current_player, 'X');
+                }
             } else {
                 player_move(board, current_player);
             }
@@ -212,6 +228,16 @@ int main() {
         printf("Do you want to play again? (y/n): ");
         scanf(" %c", &play_again);
         play_again = tolower(play_again);
+
+        if (play_again == 'n') {
+            printf("Do you want to reset the scores? (y/n): ");
+            scanf(" %c", &reset_scores);
+            reset_scores = tolower(reset_scores);
+
+            if (reset_scores == 'y') {
+                reset_score(&player_x_wins, &player_o_wins);
+            }
+        }
 
     } while (play_again == 'y');
 
